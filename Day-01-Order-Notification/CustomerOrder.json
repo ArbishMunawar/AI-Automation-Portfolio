@@ -1,0 +1,145 @@
+{
+  "name": "Customer order",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "documentId": {
+          "__rl": true,
+          "value": "1meIRbNZba4herqjY3QMrFUPyAdPlHKzN2rWM1AT9nt4",
+          "mode": "list",
+          "cachedResultName": "Customer order",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1meIRbNZba4herqjY3QMrFUPyAdPlHKzN2rWM1AT9nt4/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1meIRbNZba4herqjY3QMrFUPyAdPlHKzN2rWM1AT9nt4/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "33d5ab29-b910-4000-9514-21f853274503",
+      "name": "Google Sheets Trigger",
+      "credentials": {
+        "googleSheetsTriggerOAuth2Api": {
+          "id": "sfkVASEmlkZz3SKV",
+          "name": "Google Sheets Trigger OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "models/gemini-3-flash-preview"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are in charge of client orders. Your job is to take incoming information regarding new orders and give a nice summary that will be emailed to the team. The email should be signed off from \"Customer Success Team\".\n\nHere is the information on client orders.\nOrder ID:{{ $json.OrderID }}\nCustomer Name:{{ $json.CustomerName }}\nProduct:{{ $json.Product }}\nQuantity:{{ $json.Quantity }}\nPrice:{{ $json.Price }}\nOrder Date:{{ $json.OrderDate }}\nStatus:{{ $json.Status }}\n\nPlease output the following parameters:\nEmail Subject\nEmail Body ",
+              "role": "model"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "09e79976-9440-4048-9d32-f8ba0dfe49ec",
+      "name": "Summarize",
+      "credentials": {
+        "googlePalmApi": {
+          "id": null,
+          "name": "",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "arbishmunawar03@gmail.com",
+        "subject": "={{ JSON.parse($json.content.parts[0].text)[\"Email Subject\"] }}",
+        "emailType": "text",
+        "message": "={{ JSON.parse($json.content.parts[0].text)[\"Email Body\"] }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        560,
+        0
+      ],
+      "id": "93223f62-3361-4471-9d95-5196e586e07d",
+      "name": "Send a message",
+      "webhookId": "31c19bf2-6afe-4546-8d2e-1f29eab46f45",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "UHkCgLL3cIfN7yow",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Sheets Trigger": {
+      "main": [
+        [
+          {
+            "node": "Summarize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarize": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "065bac0f-2695-4c3c-a5e1-281bea258409",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3d111f22c3c5702eeeae49f3b9f0d96f23f1e4f6cbb3cc61bc21738b7f8ec7ce"
+  },
+  "nodeGroups": [],
+  "id": "WJ8unExbHhae2yTo",
+  "tags": []
+}
