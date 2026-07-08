@@ -1,0 +1,173 @@
+{
+  "name": "AI Cold Email Generator.",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a professional email assistant.\n\nSummarize this email and write a polite professional reply.\n\nSubject:\n{{ $('Get a message').item.json.subject || \"No Subject\" }}\n\nFrom:\n{{ $('Get a message').item.json.from || \"Unknown Sender\" }}\n\nEmail Body:\n{{ $('Get a message').item.json.text || $('Get a message').item.json.bodyText || $('Get a message').item.json.snippet || \"No Body Content\" }}",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        624,
+        0
+      ],
+      "id": "e2fd7f13-1f13-464b-9a6b-e63200bce37a",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        688,
+        192
+      ],
+      "id": "297fbec1-5674-47b6-92e0-73d0d4c5a9a3",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": null,
+          "name": "",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "messageId": "={{ $json.id }}"
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        400,
+        16
+      ],
+      "id": "cead1d9c-3aa9-467b-bb8d-91e43912e0e0",
+      "name": "Get a message",
+      "webhookId": "932ebf30-bcd4-4183-bbe1-314ae52e4928",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "UHkCgLL3cIfN7yow",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "5c7eeb11-e2cc-4df1-9811-ac925cd400e7",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "UHkCgLL3cIfN7yow",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Get a message').item.json.From }}",
+        "subject": "={{ $('Get a message').item.json.Subject }}",
+        "emailType": "text",
+        "message": "={{ $json.text.split('---').pop().replace('').trim() }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        976,
+        0
+      ],
+      "id": "8838bc7c-ae3a-4aa1-883d-9d01e4a84e24",
+      "name": "Send a message",
+      "webhookId": "d099c84f-62cc-4f83-a298-e87f7a5d1fef",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "UHkCgLL3cIfN7yow",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a message": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "42c0dfac-3516-4ee5-818d-ca3a1b6959b5",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3d111f22c3c5702eeeae49f3b9f0d96f23f1e4f6cbb3cc61bc21738b7f8ec7ce"
+  },
+  "nodeGroups": [],
+  "id": "Wq5Mmz9V9yC3otkC",
+  "tags": []
+}
