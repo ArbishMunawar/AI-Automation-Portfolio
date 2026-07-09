@@ -1,0 +1,250 @@
+{
+  "name": "AI-Email-Classifier",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -448,
+        0
+      ],
+      "id": "9bc2b5d8-b1d9-4ed5-a877-336a0b2fd240",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "UHkCgLL3cIfN7yow",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "messageId": "={{ $json.id }}"
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -240,
+        0
+      ],
+      "id": "3efc77d2-ee6b-4902-817f-a5be22b94ef4",
+      "name": "Get a message",
+      "webhookId": "65d45267-591c-45c2-bd45-8c3680d1d1e6",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "UHkCgLL3cIfN7yow",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an expert email classification assistant for a software company. Analyze the incoming email data and categorize it into exactly ONE of these categories:\n* Support\n* Sales\n* Hiring\n* Spam\n\nReturn ONLY the category name as plain text. Do not add any other words, punctuation, or explanations.\n\nEmail Subject: {{ $json.Subject }}\nEmail Snippet: {{ $json.snippet }}",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        -32,
+        0
+      ],
+      "id": "408cee6b-6e0f-45b5-8d66-00cc22399739",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        80,
+        176
+      ],
+      "id": "25105858-5d60-471c-b04e-bee3cd54deb1",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": null,
+          "name": "",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1XrHVRTIfMz-yMyh3emM1D2_Tfsifw9TSw-csUDHlpOM",
+          "mode": "list",
+          "cachedResultName": "AI Email Log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1XrHVRTIfMz-yMyh3emM1D2_Tfsifw9TSw-csUDHlpOM/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1XrHVRTIfMz-yMyh3emM1D2_Tfsifw9TSw-csUDHlpOM/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "row_number": 0,
+            "Subject": "={{ $('Gmail Trigger').item.json.Subject }}",
+            "Sender": "={{ $('Gmail Trigger').item.json.From }}",
+            "Category": "={{ $('Basic LLM Chain').item.json.text }}",
+            "Date": "={{ $now }}"
+          },
+          "matchingColumns": [
+            "Date"
+          ],
+          "schema": [
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Sender",
+              "displayName": "Sender",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Subject",
+              "displayName": "Subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Category",
+              "displayName": "Category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        320,
+        0
+      ],
+      "id": "f40352d8-d1e4-4a55-829c-f2baf1375c51",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "t1L012vBrtFFTnzW",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a message": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "c2ad91db-a31c-4255-8336-0db29b3f84c0",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3d111f22c3c5702eeeae49f3b9f0d96f23f1e4f6cbb3cc61bc21738b7f8ec7ce"
+  },
+  "nodeGroups": [],
+  "id": "9MAGB2uh4rChBmlT",
+  "tags": []
+}
