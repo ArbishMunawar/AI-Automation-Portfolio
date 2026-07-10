@@ -1,0 +1,293 @@
+{
+  "name": "Resume Analyzer",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "analyze-resume",
+        "options": {
+          "binaryPropertyName": "data"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -480,
+        -48
+      ],
+      "id": "b8ae78d4-3389-43a0-840c-a48cdb985e3a",
+      "name": "Webhook",
+      "webhookId": "1529ec4f-0d19-4a0f-a18c-b920f725d959"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "binaryPropertyName": "data0",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        -272,
+        -48
+      ],
+      "id": "ea4a644a-baa2-4ce7-b7be-33d57c12b08c",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an expert HR resume analyzer. Analyze the following resume text and return the results strictly as a structured JSON object. Do not include any markdown formatting, backticks (```json), or extra text outside the JSON object.\n\nResume Text to Analyze:\n{{ $json.text }}\n\nExpected JSON Output Format:\n{\n  \"name\": \"Extract the candidate's full name,\"\n  \"email\": \"Extract the candidate's email address,\"\n  \"skills\": \"A comma-separated list of key technical and soft skills found,\"\n  \"score_out_of_100\": \"An overall professional score from 1 to 100 based on their experience and formatting\",\n  \"improvement_suggestions\": \"A concise paragraph with 2-3 specific suggestions to improve their resume\"\n}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -80,
+        -48
+      ],
+      "id": "7ea1ab71-a9e8-4c16-bf4b-95c10e79895b",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -224,
+        160
+      ],
+      "id": "6d67a101-e1ed-4dd0-a1be-e303f06f58c3",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": null,
+          "name": "",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "40c2a942-6816-420b-971a-552c5831e594",
+              "name": "Name",
+              "value": "={{ JSON.parse($('AI Agent').item.json.output).name }}",
+              "type": "string"
+            },
+            {
+              "id": "bb0f66d8-21a0-45c2-a862-21b6bea07b06",
+              "name": "Email",
+              "value": "={{ JSON.parse($('AI Agent').item.json.output).email }}",
+              "type": "string"
+            },
+            {
+              "id": "440f8baa-bb62-42f6-a270-e5e47e050ba9",
+              "name": "Skills",
+              "value": "={{ JSON.parse($('AI Agent').item.json.output).skills }}",
+              "type": "string"
+            },
+            {
+              "id": "fe0a2e24-582c-4fff-b984-b65ffd1046f4",
+              "name": "Score",
+              "value": "={{ JSON.parse($('AI Agent').item.json.output).score_out_of_100 }}",
+              "type": "string"
+            },
+            {
+              "id": "4976d808-b33c-4f2a-a807-43182107b8d4",
+              "name": "Suggestions",
+              "value": "={{ JSON.parse($('AI Agent').item.json.output).improvement_suggestions }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        272,
+        -48
+      ],
+      "id": "f1eb5d4c-e1ca-4b7f-a9e3-3353135c46e2",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1l9al5BEQ0iAHQcAZFaJKPWI_qt48CfqmL9sbPCXpFDo",
+          "mode": "list",
+          "cachedResultName": "Resume Analyzer",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1l9al5BEQ0iAHQcAZFaJKPWI_qt48CfqmL9sbPCXpFDo/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1l9al5BEQ0iAHQcAZFaJKPWI_qt48CfqmL9sbPCXpFDo/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name": "={{ $json.Name }}",
+            "Email": "={{ $json.Email }}",
+            "Skills": "={{ $json.Skills }}",
+            "Score": "={{ $json.Score }}",
+            "Suggestions": "={{ $json.Suggestions }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Skills",
+              "displayName": "Skills",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Score",
+              "displayName": "Score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Suggestions",
+              "displayName": "Suggestions",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        480,
+        -48
+      ],
+      "id": "9ebbce56-dd7f-4c39-9729-3971a0aef592",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "t1L012vBrtFFTnzW",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "978794bb-56ac-4a62-8bcd-5e1bde9ee82b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3d111f22c3c5702eeeae49f3b9f0d96f23f1e4f6cbb3cc61bc21738b7f8ec7ce"
+  },
+  "nodeGroups": [],
+  "id": "l8HGFBmOgaBK59ci",
+  "tags": []
+}
