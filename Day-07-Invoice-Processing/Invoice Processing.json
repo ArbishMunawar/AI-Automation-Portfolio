@@ -1,0 +1,283 @@
+{
+  "name": "Invoice Processing",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "0b507353-4b71-4dae-8f19-d5cecdddc379",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "18d8GzMXnYKv0D5SlxHrdrAi7XotV42x2",
+          "mode": "list",
+          "cachedResultName": "test_invoice.pdf",
+          "cachedResultUrl": "https://drive.google.com/file/d/18d8GzMXnYKv0D5SlxHrdrAi7XotV42x2/view?usp=drivesdk"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        192,
+        16
+      ],
+      "id": "224bb1d8-e4c4-463d-aa44-02b5fdc601d4",
+      "name": "Download file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "IEfbQW5NV70hqRqa",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        400,
+        16
+      ],
+      "id": "dbbe960e-4c3c-409c-ba05-52e6e4eb6bd2",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Extract the following information from this invoice:\n\n- Invoice Number\n- Company Name\n- Invoice Date\n- Due Date\n- Total Amount\n\nReturn only valid JSON:\n\n{\n\"invoiceNumber\":\"\"\n\"companyName\":\"\"\n\"invoiceDate\":\"\"\n\"dueDate\":\"\"\n\"totalAmount\": \"\"\n}\n\nInvoice Text:\n{{ $json.text }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        608,
+        16
+      ],
+      "id": "8bc1cb6c-cf9b-4bc6-91d9-fee0a3e07933",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        480,
+        144
+      ],
+      "id": "79397008-86af-4e0c-9b64-5582ab794808",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": null,
+          "name": "",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = JSON.parse($json.output);\n\nreturn [\n  {\n    json: {\n      invoiceNumber: data.invoiceNumber,\n      companyName: data.companyName,\n      invoiceDate: data.invoiceDate,\n      dueDate: data.dueDate,\n      totalAmount: data.totalAmount\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        16
+      ],
+      "id": "5536f324-c203-45f3-bd27-e89fbe59487d",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1VPRLMWLvJggomB_uU-yjv9RMTjWG92iTqt2x6gaCiIc",
+          "mode": "list",
+          "cachedResultName": "Invoice Processing",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1VPRLMWLvJggomB_uU-yjv9RMTjWG92iTqt2x6gaCiIc/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1VPRLMWLvJggomB_uU-yjv9RMTjWG92iTqt2x6gaCiIc/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "Invoice Number"
+          ],
+          "schema": [
+            {
+              "id": "invoiceNumber",
+              "displayName": "invoiceNumber",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "companyName",
+              "displayName": "companyName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "invoiceDate",
+              "displayName": "invoiceDate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "dueDate",
+              "displayName": "dueDate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "totalAmount",
+              "displayName": "totalAmount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1168,
+        16
+      ],
+      "id": "ebe19fce-b61b-4b06-941e-f61dd0ce429e",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "t1L012vBrtFFTnzW",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "63021000-2af4-4457-9444-38bbbf44062c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3d111f22c3c5702eeeae49f3b9f0d96f23f1e4f6cbb3cc61bc21738b7f8ec7ce"
+  },
+  "nodeGroups": [],
+  "id": "46HDEVyiZRf6mbYQ",
+  "tags": []
+}
