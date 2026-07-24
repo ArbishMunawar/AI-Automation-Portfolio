@@ -1,0 +1,167 @@
+{
+  "name": "Lead Capture Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lead-capture",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "94f2d677-2fc5-46c1-8fde-ff4750030950",
+      "name": "Webhook",
+      "webhookId": "98fc3f5d-e887-438a-abb3-a2457b2a2ec4"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1YugPOEFKeR3UKlz2l8c0N7YHVyW9j_1nMVZ3MazoQys",
+          "mode": "list",
+          "cachedResultName": "Lead Capture Automation",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YugPOEFKeR3UKlz2l8c0N7YHVyW9j_1nMVZ3MazoQys/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YugPOEFKeR3UKlz2l8c0N7YHVyW9j_1nMVZ3MazoQys/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name": "={{ $json.body.name }}",
+            "Email": "={{ $json.body.email }}",
+            "Phone": "={{ $json.body.phone }}",
+            "Service": "={{ $json.body.service }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Service",
+              "displayName": "Service",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        192,
+        -16
+      ],
+      "id": "a198eb98-01ec-4ad9-8fe3-ccaa1ecd39ae",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "Q3tfyik3et95qp4r",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.Email }}",
+        "subject": "Thank You For Contacting Us",
+        "message": "=Hi {{ $json.Name }},\n\nThank you for your interest in our {{ $json.Service }} services.\n\nOur team has received your inquiry and will contact you shortly.\n\nRegards,\nTaskFlow Team",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "ca16ca38-e591-4baf-a0fd-641d15b0d414",
+      "name": "Send a message",
+      "webhookId": "9d04afb8-cb81-424b-91a9-35b9f99c4e91",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "JmjJ41SwRlwxK3lP",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "a07542c3-b926-4ca5-a234-34af8e3d73c4",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5f5ba3475dee15f87a2661d190021181265c9d8f7817288966e67b9490f06cd7"
+  },
+  "nodeGroups": [],
+  "id": "WRc51VIeLodUvubN",
+  "tags": []
+}
