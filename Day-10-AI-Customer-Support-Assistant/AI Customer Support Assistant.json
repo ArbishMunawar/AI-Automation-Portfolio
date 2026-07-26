@@ -1,0 +1,176 @@
+{
+  "name": "AI Customer Support Assistant",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -288,
+        0
+      ],
+      "id": "6e81792d-7880-4783-b3c3-1db436b1e21d",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f3b5fe4d-2a20-47b0-a77c-fe7c311d7650",
+              "name": "customerEmail",
+              "value": "arbish213@gmail.com",
+              "type": "string"
+            },
+            {
+              "id": "478836dd-7c85-4db8-a731-1ad1249de5d7",
+              "name": "subject",
+              "value": "Refund Request",
+              "type": "string"
+            },
+            {
+              "id": "31ab9a28-7f03-4700-8045-109638c299bf",
+              "name": "message",
+              "value": "Hello, I accidentally ordered the wrong product. Can I get a refund?",
+              "type": "string"
+            },
+            {
+              "id": "98154243-87f0-471a-8cac-8810efcdb8be",
+              "name": "customerName",
+              "value": "John Smith",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -80,
+        0
+      ],
+      "id": "ffa98acf-1fff-4452-a4a8-891aee87ae9d",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a professional customer support representative.\n\nThe customer's name is {{ $json.customerName }}.\n\nWrite a polite reply addressing them by their name.\n\nSubject:\n{{ $json.subject }}\n\nCustomer Message:\n{{ $json.message }}\n\nReturn only the email body.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        128,
+        0
+      ],
+      "id": "bcee5c66-56cc-416b-9cea-2e954b11bfde",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        -16,
+        208
+      ],
+      "id": "8ca66b10-3ed7-4990-bb75-32789d4d54d8",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": null,
+          "name": "",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Edit Fields').item.json.customerEmail }}",
+        "subject": "={{ $('Edit Fields').item.json.subject }}",
+        "message": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        480,
+        0
+      ],
+      "id": "15d74098-7d5a-4557-9339-1f2529f3870a",
+      "name": "Send a message",
+      "webhookId": "982bd593-5893-48d3-b9cd-e1c2e5fb789c",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "JmjJ41SwRlwxK3lP",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "5e2ee0b0-82b2-42e9-b040-93c6d784d547",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5f5ba3475dee15f87a2661d190021181265c9d8f7817288966e67b9490f06cd7"
+  },
+  "nodeGroups": [],
+  "id": "TFDcL1lEUR6CG1nw",
+  "tags": []
+}
