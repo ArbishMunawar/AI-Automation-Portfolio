@@ -1,0 +1,203 @@
+{
+  "name": "AI Meeting Summarizer",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -288,
+        -16
+      ],
+      "id": "5e993579-f9b9-4dd0-9693-ab378d137144",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "04e1d264-1240-4e57-81df-f08b8c599f45",
+              "name": "=transcript",
+              "value": "=Meeting Title: Weekly Marketing Strategy Meeting\n\nDate: July 22, 2026\n\nSarah: Good morning everyone. Let's quickly review last week's campaign performance.\n\nMichael: We generated around 2,350 website visitors, which is about 18% higher than the previous week. Most of the traffic came from LinkedIn and organic Google searches.\n\nEmma: The LinkedIn carousel posts performed really well. One of them reached over 12,000 impressions and generated 85 profile visits.\n\nDavid: That's great. However, our email campaign only had a 21% open rate, which is lower than expected. I think we should test new subject lines.\n\nSarah: Agreed. Michael, can you prepare three new email subject line variations by Friday?\n\nMichael: Yes, I'll have those ready before Friday afternoon.\n\nEmma: I also suggest increasing our posting frequency from three posts per week to five posts per week.\n\nDavid: Sounds good. We should also create two short videos explaining our services because video content is getting much higher engagement.\n\nSarah: Good idea. Emma, can you create a content calendar including those videos?\n\nEmma: Absolutely. I'll finish the calendar by Wednesday.\n\nDavid: Another issue is that several leads submitted forms but nobody followed up within 24 hours.\n\nSarah: That's something we need to fix immediately. Let's automate lead notifications so sales receives an email as soon as a form is submitted.\n\nMichael: I can build that workflow in n8n this week.\n\nSarah: Perfect. Finally, our goal for next week is to generate at least 3,000 website visitors and improve the email open rate to 30%.\n\nEmma: I'll monitor the analytics daily.\n\nSarah: Great work, everyone. Thanks for joining. Meeting adjourned.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -80,
+        -16
+      ],
+      "id": "067b3389-7d69-4c83-a2e5-fdf40c683124",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an executive meeting assistant.\n\nAnalyze the following meeting transcript.\n\nReturn the result in Markdown with these sections:\n\n# Summary\n\n# Key Decisions\n\n# Action Items\n\n# Risks\n\n# Next Meeting Agenda\n\nMeeting Transcript:\n\n{{ $json.transcript }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        128,
+        -16
+      ],
+      "id": "0ad9c9bf-15dc-42dc-bcf1-c56805f705d8",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        -16,
+        192
+      ],
+      "id": "61bca33a-393e-4366-a40d-d3693597729b",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": null,
+          "name": "",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "createFromText",
+        "content": "={{ $json.output }}",
+        "name": "Meeting Summary",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1L8yX3Ewx5OnPrRFQXxbI6l-bFmwzUM5r",
+          "mode": "list",
+          "cachedResultName": "Meeting Summary",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1L8yX3Ewx5OnPrRFQXxbI6l-bFmwzUM5r"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        480,
+        -16
+      ],
+      "id": "f2411c8b-6edb-4edd-bba1-4a662382108d",
+      "name": "Create file from text",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "eugtSOW69buGxgj3",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "arbish213@gmail.com",
+        "subject": "Meeting Summary",
+        "message": "={{ $('AI Agent').item.json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        688,
+        -16
+      ],
+      "id": "b35a9116-17eb-4739-9220-69c6576930e8",
+      "name": "Send a message",
+      "webhookId": "ebe84488-a5e6-48cb-a90d-9979ae31e35b",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "JmjJ41SwRlwxK3lP",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Create file from text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create file from text": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "efc6d2d8-b17e-475a-94eb-793b4482dfcd",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5f5ba3475dee15f87a2661d190021181265c9d8f7817288966e67b9490f06cd7"
+  },
+  "nodeGroups": [],
+  "id": "gy05ACWbratSMEZo",
+  "tags": []
+}
