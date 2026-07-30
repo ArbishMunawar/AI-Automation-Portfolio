@@ -1,0 +1,324 @@
+{
+  "name": "AI HR Recruitment Assistant",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "resume-upload",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "cea70246-389a-4a32-ac54-a703e3f15945",
+      "name": "Webhook",
+      "webhookId": "c24cdba6-d815-4a01-a60d-e9a37ddd705b"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "binaryPropertyName": "resume",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "17379491-9880-4a06-b2b8-322a9045bf44",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "table": {
+          "__rl": true,
+          "value": "candidates",
+          "mode": "list",
+          "cachedResultName": "candidates"
+        },
+        "dataMode": "defineBelow",
+        "valuesToSend": {
+          "values": [
+            {
+              "column": "name",
+              "value": "={{$json.output.name}}"
+            },
+            {
+              "column": "email",
+              "value": "={{ $json.output.email }}"
+            },
+            {
+              "column": "phone",
+              "value": "={{ $json.output.phone }}"
+            },
+            {
+              "column": "skills",
+              "value": "={{ $json.output.skills.join(\", \") }}"
+            },
+            {
+              "column": "education",
+              "value": "={{ $json.output.education }}"
+            },
+            {
+              "column": "experience",
+              "value": "={{ $json.output.experience }}"
+            },
+            {
+              "column": "score",
+              "value": "={{ $json.output.score }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [
+        768,
+        0
+      ],
+      "id": "b7f44223-5ade-454e-8917-79d68c874acd",
+      "name": "Insert rows in a table",
+      "credentials": {
+        "mySql": {
+          "id": "J44Yzxc4XJt1Sgm8",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an HR recruitment assistant.\n\nAnalyze the resume below.\n\nExtract:\n\n- name\n- email\n- phone\n- education\n- skills\n- experience\n- score (integer from 0 to 100)\n\nResume:\n\n{{ $json.text }}\n\nReturn ONLY valid JSON.\n\nRules:\n- No markdown\n- No ```json\n- No explanation\n- skills must be an array of strings\n- score must be an integer",
+        "hasOutputParser": true,
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        416,
+        0
+      ],
+      "id": "a125de31-2b44-46cc-a749-5abbc28e0230",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-20b:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        352,
+        208
+      ],
+      "id": "15dc6442-9dc3-4e80-a495-b84b3b041690",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "Es1vStaD2yWdTz2N",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"name\": { \"type\": \"string\" },\n    \"email\": { \"type\": \"string\" },\n    \"phone\": { \"type\": \"string\" },\n    \"education\": { \"type\": \"string\" },\n    \"skills\": {\n      \"type\": \"array\",\n      \"items\": { \"type\": \"string\" }\n    },\n    \"experience\": { \"type\": \"string\" },\n    \"score\": {\n      \"type\": \"integer\",\n      \"minimum\": 0,\n      \"maximum\": 100\n    }\n  },\n  \"required\": [\n    \"name\",\n    \"email\",\n    \"phone\",\n    \"education\",\n    \"skills\",\n    \"experience\",\n    \"score\"\n  ]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        560,
+        208
+      ],
+      "id": "ee3a59fd-1cad-434c-84d7-87c1c5880cf9",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "5068f2c9-3b6a-4707-a11f-a49d6b659bc2",
+              "leftValue": "={{ $('Basic LLM Chain').item.json.output.score }}",
+              "rightValue": 80,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        976,
+        0
+      ],
+      "id": "daa1e973-546c-4064-9603-af66000fe104",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Basic LLM Chain').item.json.output.email }}",
+        "subject": "Interview Invitation",
+        "message": "=Hi {{$ ('Basic LLM Chain').item.json.output.name}}, \nCongratulations! Based on our AI resume screening, your profile has been shortlisted. We would like to invite you for the next interview round.\nRegards, HR Team",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1184,
+        -64
+      ],
+      "id": "8e52f143-3438-4807-9cba-fc396dddc343",
+      "name": "Send a message",
+      "webhookId": "6df249bf-c990-41ed-994e-5e109e252e2d",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "R7oFNWeczFki2fjL",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Basic LLM Chain').item.json.output.email }}",
+        "subject": "Application Response",
+        "message": "=You are an HR manager.\n\nThe candidate scored {{ $('Basic LLM Chain').item.json.output.score }}/100.\n\nExperience:\n{{ $('Basic LLM Chain').item.json.output.experience }}\n\nSkills:\n{{ $('Basic LLM Chain').item.json.output.skills }}\n\nEducation:\n{{ $('Basic LLM Chain').item.json.output.education }}\n\nWrite a polite rejection email.\n\nMention:\n- Thank the candidate.\n- Explain they were not selected.\n- Give 3 personalized improvement suggestions.\n- Encourage them to apply again.\n\nReturn only the email.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1184,
+        96
+      ],
+      "id": "6a51300f-8ddc-4904-8d45-0d6cebd60fcf",
+      "name": "Send a message1",
+      "webhookId": "ca9fec2b-894a-424b-9b3c-31d3154f4268",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "R7oFNWeczFki2fjL",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Insert rows in a table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert rows in a table": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "e089c57f-2be9-401e-8f66-766a1bd25da9",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b3a0300d2bf5024227db146692619a19c88e3b6da3cb3cb7b222858ba4f731b6"
+  },
+  "nodeGroups": [],
+  "id": "8dEwRttHDb7Z8jZq",
+  "tags": []
+}
